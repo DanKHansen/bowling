@@ -1,16 +1,19 @@
 import scala.annotation.tailrec
 
-case class Bowling(acc: Seq[Int] = Nil):
-   def roll(p: Int): Bowling = Bowling(p +: acc)
+case class Bowling(rolls: List[Int] = Nil):
+   def roll(pins: Int): Bowling = Bowling(pins +: rolls)
 
    def score(): Either[String, Int] =
       @tailrec
-      def calc(frame: Double, rs: Seq[Int], total: Int): Either[String, Int] =
-         println((frame, rs, total))
-         (frame, rs) match
-            case (10, bonus) if bonus.forall(_ <= 10)                                => Right(bonus.sum + total)
-            case (f, r1 :: r2 :: tail) if r1 + r2 < 10        => calc(f + 1.0, tail, r1 + r2 + total)
-            case (f, r1 :: r2 :: r3 :: tail) if r1 + r2 == 10 => calc(f + 1.0, r3 :: tail, r1 + r2 + r3 + total)
-            case (f, 10 :: r2 :: r3 :: tail)                  => calc(f + 1.0, r2 :: r3 :: tail, 10 + r2 + r3 + total)
-            case (_, rs) if rs.exists(r => r > 10 || r < 0)   => Left("Error")
-      calc(1, acc.reverse, 0)
+      def loop(rs: List[Int], f: Int, acc: Int): Either[String, Int] =
+         (f, rs) match
+            case (11, Nil)                                          => Right(acc)
+            case (10, 10 :: 10 :: br3 :: tail) if br3 <= 10         => loop(tail, f + 1, 10 + 10 + br3 + acc)
+            case (10, 10 :: br2 :: br3 :: tail) if br2 + br3 <= 10  => loop(tail, f + 1, 10 + br2 + br3 + acc)
+            case (10, br1 :: br2 :: br3 :: tail) if br1 + br2 == 10 => loop(tail, f + 1, br1 + br2 + br3 + acc)
+            case (_, 10 :: 10 :: r1 :: tail)                        => loop(10 :: r1 :: tail, f + 1, 10 + 10 + r1 + acc)
+            case (_, 10 :: r1 :: r2 :: tail)                        => loop(r1 :: r2 :: tail, f + 1, 10 + r1 + r2 + acc)
+            case (_, r1 :: r2 :: r3 :: tail) if r1 + r2 == 10       => loop(r3 :: tail, f + 1, r1 + r2 + r3 + acc)
+            case (_, r1 :: r2 :: tail) if r1 + r2 < 10              => loop(tail, f + 1, r1 + r2 + acc)
+            case _                                                  => Left("TheEnd!")
+      loop(rolls.reverse, 1, 0)
