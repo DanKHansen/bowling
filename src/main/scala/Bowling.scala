@@ -1,7 +1,7 @@
 import scala.annotation.tailrec
 
 case class Bowling(rolls: List[Int] = Nil):
-   def roll(pins: Int): Bowling = Bowling(pins +: rolls)
+   def roll(pins: Int): Bowling = Bowling(pins :: rolls)
 
    def score(): Either[String, Int] =
       @tailrec
